@@ -147,6 +147,7 @@
           try {
             let device = await this.initLiff()
 
+            this.text = '讀取資料中...'
             let userService = await device.gatt.getPrimaryService(USER_SERVICE_UUID)
             // 讀取 LED 燈號
             this.led = await getCharInt32(userService, LED_CHAR_UUID)
@@ -157,6 +158,7 @@
             // 讀取 psdi
             let psdiService = await device.gatt.getPrimaryService(PSDI_SERVICE_UUID)
             this.devicePsdi = await getCharHex(psdiService, PSDI_CHAR_UUID)
+            this.text = '已連線'
           } catch (err) {
             this.text = err.stack
             throw err
