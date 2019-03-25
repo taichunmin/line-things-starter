@@ -85,9 +85,11 @@
 
     let device = null
 
-    async function getCharUtf8(service, uuid) {
+    async function getCharStr(service, uuid) {
       let characteristic = await service.getCharacteristic(uuid)
-      return new TextDecoder().decode(await characteristic.readValue())
+      let value = await characteristic.readValue()
+      console.log(value)
+      return new TextDecoder().decode(value)
     }
 
     async function getCharInt32(service, uuid) {
@@ -152,9 +154,9 @@
             // 讀取 LED 燈號
             this.led = await getCharInt32(userService, LED_CHAR_UUID)
             // 讀取溫度
-            this.temperature = await getCharUtf8(userService, TEMPERATURE_CHAR_UUID)
+            this.temperature = await getCharStr(userService, TEMPERATURE_CHAR_UUID)
             // 讀取濕度
-            this.humidity = await getCharUtf8(userService, HUMIDITY_CHAR_UUID)
+            this.humidity = await getCharStr(userService, HUMIDITY_CHAR_UUID)
             // 讀取 psdi
             let psdiService = await device.gatt.getPrimaryService(PSDI_SERVICE_UUID)
             this.devicePsdi = await getCharHex(psdiService, PSDI_CHAR_UUID)
