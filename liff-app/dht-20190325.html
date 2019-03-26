@@ -56,7 +56,7 @@
         <tr>
           <th class="text-right text-nowrap"></th>
           <td class="py-2">
-            <button class="btn btn-sm btn-success" @click="readDht"><i class="fa fa-fw fa-refresh"></i> 重新讀取</button>
+            <button class="btn btn-sm btn-success" @click="readDht(true)"><i class="fa fa-fw fa-refresh"></i> 重新讀取</button>
           </td>
         </tr>
       </table>
@@ -133,7 +133,7 @@
     let vm = new Vue({
       el: '#app',
       mounted() {
-        this.readDht()
+        this.readDht(true)
         // 設定計時器
         setInterval(() => {
           this.now = moment()
@@ -180,7 +180,7 @@
           device.addEventListener('gattserverdisconnected', disconnectCallback);
           return device
         },
-        async readDht(once) {
+        async readDht(repeat) {
           try {
             let device = await this.initLiff()
 
@@ -197,7 +197,7 @@
             this.devicePsdi = await getCharStr(psdiService, PSDI_CHAR_UUID)
             this.updatedAt = moment()
             this.text = ''
-            if (!once) {
+            if (repeat) {
               setTimeout(() => {
                 this.readDht()
               }, 1e4)
@@ -214,7 +214,7 @@
             let userService = await device.gatt.getPrimaryService(USER_SERVICE_UUID)
             await setCharInt32(userService, LED_CHAR_UUID, state)
             this.text = ''
-            this.readDht(true)
+            this.readDht(false)
           } catch (err) {
             this.text = err.stack
           }
