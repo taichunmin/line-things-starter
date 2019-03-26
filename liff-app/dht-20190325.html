@@ -134,6 +134,10 @@
       el: '#app',
       mounted() {
         this.readDht()
+        // 設定計時器
+        setInterval(() => {
+          this.now = moment()
+        }, 1000)
       },
       data: {
         deviceId: null,
@@ -144,7 +148,8 @@
         humidity: null,
         userId: null,
         text: '尚未初始化',
-        updatedAt: null
+        updatedAt: null,
+        now: moment()
       },
       methods: {
         async initLiff() {
