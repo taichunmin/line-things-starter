@@ -172,10 +172,11 @@
           this.deviceName = device.name
           // 處理斷線事件
           const disconnectCallback = () => {
-            device = null
             this.text = '已中斷連線'
             // 移除 callback
             device.removeEventListener('gattserverdisconnected', disconnectCallback)
+            // 刪除 device
+            device = null
           }
           device.addEventListener('gattserverdisconnected', disconnectCallback);
           return device
