@@ -190,7 +190,7 @@
             // 讀取 psdi
             let psdiService = await device.gatt.getPrimaryService(PSDI_SERVICE_UUID)
             this.devicePsdi = await getCharStr(psdiService, PSDI_CHAR_UUID)
-            this.lastUpdatedAt = moment()
+            this.updatedAt = moment()
             this.text = ''
             setTimeout(() => {
               this.readDht()
