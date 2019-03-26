@@ -213,7 +213,6 @@
             this.text = '寫入 LED 資料中...'
             let userService = await device.gatt.getPrimaryService(USER_SERVICE_UUID)
             await setCharInt32(userService, LED_CHAR_UUID, state)
-            this.text = ''
             this.readDht(false)
           } catch (err) {
             this.text = err.stack
