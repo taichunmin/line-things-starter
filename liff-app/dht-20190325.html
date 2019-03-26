@@ -17,13 +17,13 @@
 
 <body>
   <div class="container text-monospace" id="app" v-cloak="v-cloak">
-    <h1 class="text-center my-5">LINE Things Demo</h1>
+    <h2 class="text-center my-5">LINE Things Demo</h2>
     <div class="table-responsive">
-      <table class="table table-striped table-hover">
+      <table class="table table-striped">
         <tr>
           <th class="text-right text-nowrap" style="width: 20%;">連線狀態</th>
           <td>
-            <pre class="my-0">{{ text }}</pre>
+            <pre class="my-0">{{ text || (updatedAt ? `最後更新於 ${updatedAt.from(now)}` : '系統錯誤') }}</pre>
           </td>
         </tr>
         <tr>
@@ -49,8 +49,8 @@
         <tr>
           <th class="text-right text-nowrap">LED</th>
           <td class="py-2">
-            <button class="btn btn-sm btn-success" v-if="led"><i class="fa fa-fw fa-toggle-on"></i> On</button>
-            <button class="btn btn-sm btn-danger" v-else="v-else"><i class="fa fa-fw fa-toggle-off"></i> Off</button>
+            <button class="btn btn-sm btn-success" v-if="led" @click="writeLed(0)"><i class="fa fa-fw fa-toggle-on"></i> On</button>
+            <button class="btn btn-sm btn-danger" v-else="v-else" @click="writeLed(1)"><i class="fa fa-fw fa-toggle-off"></i> Off</button>
           </td>
         </tr>
         <tr>
@@ -70,7 +70,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/locale/zh-tw.js"></script>
   <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vconsole@3.2.0/dist/vconsole.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vConsole/3.3.0/vconsole.min.js"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
 
@@ -92,6 +92,19 @@
 
     let device = null
 
+    // 設定 moment
+    moment.locale('zh-tw')
+    // https://momentjs.com/docs/#/customization/relative-time-threshold/
+    moment.relativeTimeThreshold('s', 60)
+    moment.relativeTimeThreshold('m', 60)
+    moment.relativeTimeThreshold('h', 24)
+    moment.relativeTimeThreshold('ss', -1)
+    moment.updateLocale('zh-tw', {
+      relativeTime: {
+        ss: '%d 秒'
+      }
+    })
+
     async function getCharStr(service, uuid) {
       let characteristic = await service.getCharacteristic(uuid)
       let value = await characteristic.readValue()
@@ -103,6 +116,11 @@
       let characteristic = await service.getCharacteristic(uuid)
       let value = await characteristic.readValue()
       return value.getInt32()
+    }
+
+    async function setCharInt32(service, uuid, newVal) {
+      let characteristic = await service.getCharacteristic(uuid)
+      await characteristic.writeValue(new Uint32Array([newVal]))
     }
 
     async function getCharHex(service, uuid) {
@@ -125,7 +143,8 @@
         temperature: null,
         humidity: null,
         userId: null,
-        text: '尚未初始化'
+        text: '尚未初始化',
+        updatedAt: null
       },
       methods: {
         async initLiff() {
@@ -147,9 +166,13 @@
           this.deviceId = device.id
           this.deviceName = device.name
           // 處理斷線事件
-          device.addEventListener('gattserverdisconnected', () => {
+          const disconnectCallback = () => {
             device = null
-          });
+            this.text = '已中斷連線'
+            // 移除 callback
+            device.removeEventListener('gattserverdisconnected', disconnectCallback)
+          }
+          device.addEventListener('gattserverdisconnected', disconnectCallback);
           return device
         },
         async readDht() {
@@ -167,10 +190,24 @@
             // 讀取 psdi
             let psdiService = await device.gatt.getPrimaryService(PSDI_SERVICE_UUID)
             this.devicePsdi = await getCharStr(psdiService, PSDI_CHAR_UUID)
-            this.text = '已連線'
+            this.lastUpdatedAt = moment()
+            this.text = ''
+            setTimeout(() => {
+              this.readDht()
+            }, 1e4)
           } catch (err) {
             this.text = err.stack
-            throw err
+          }
+        },
+        async writeLed(state) {
+          try {
+            let device = await this.initLiff()
+
+            this.text = '寫入 LED 資料中...'
+            let userService = await device.gatt.getPrimaryService(USER_SERVICE_UUID)
+            await setCharInt32(userService, LED_CHAR_UUID, state)
+          } catch (err) {
+            this.text = err.stack
           }
         }
       }
