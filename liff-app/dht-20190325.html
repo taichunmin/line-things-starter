@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
+  <title>Linkit 7697 溫濕度</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <style>
@@ -82,7 +82,7 @@
 
     var vConsole = new VConsole()
 
-    const USER_SERVICE_UUID = 'C9CB0C47-4E80-444B-BBAD-6E5EA752CA7B'
+    const USER_SERVICE_UUID = '42E08EC0-5B79-424D-8DAC-68F44E021335'
     const PSDI_SERVICE_UUID = 'E625601E-9E55-4597-A598-76018A0D293D'
 
     const TEMPERATURE_CHAR_UUID = '6136A0AB-704D-48AE-BCEF-18844B2B3311'
@@ -166,7 +166,7 @@
             this.humidity = await getCharStr(userService, HUMIDITY_CHAR_UUID)
             // 讀取 psdi
             let psdiService = await device.gatt.getPrimaryService(PSDI_SERVICE_UUID)
-            this.devicePsdi = await getCharHex(psdiService, PSDI_CHAR_UUID)
+            this.devicePsdi = await getCharStr(psdiService, PSDI_CHAR_UUID)
             this.text = '已連線'
           } catch (err) {
             this.text = err.stack
